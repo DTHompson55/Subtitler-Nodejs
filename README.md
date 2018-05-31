@@ -18,8 +18,19 @@ This solution stores your video, the stripped audio, the raw Watson STT results,
 
 Create your local .env file from the sample env provided. Get your watson speech to text username and password after setting up that service on IBM Cloud (formerly Bluemix).
 
+node app.js
+
 By default the browser opens on port 8888 and walks you through selecting a video, previewing it, selecting options, sending to to watson (currently a white screen with no progress bar), previewing and editing the results, and then showing the closed caption file so you can copy / paste it to a file of your choosing.
 
+The whole thing takes about as long as the video itself. So a 2 minute video should take about 2 minutes to process.
+
+Here is a screenshot of the settings page:
+
+![Settings Page](imgs/settingsPage.png)
+
+And one of the review page:
+
+![Review Page](imgs/reviewPage.png)
 
 
 
