@@ -16,7 +16,7 @@ This solution stores your video, the stripped audio, the raw Watson STT results,
 
 node app.js
 
-*Prereq*: ffmpeg, which probably limits where you can run this, and is also one of the reasons I don't have it running in a Docker container yet, nor on Bluemix. I run it locally on my desktop.
+*Prereq*: ffmpeg, which probably limits where you can run this, and is also one of the reasons I don't have it running in a Docker container yet, nor on Bluemix. I run it locally on my desktop. Here's the download site: https://www.ffmpeg.org/download.html
 
 Create your local .env file from the sample env provided. Get your Watson Speech to Text credentials when setting up that service on IBM Cloud (formerly Bluemix). Set the path to your ffmpeg and the port number for the webapp.
 
