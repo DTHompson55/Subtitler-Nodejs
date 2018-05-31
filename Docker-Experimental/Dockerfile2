@@ -1,0 +1,13 @@
+# specify the node base image with your desired version node:<version>
+FROM node:carbon
+
+EXPOSE 8888
+
+WORKDIR /usr/src/app 
+
+COPY package*.json ./
+COPY . .
+
+RUN npm install
+
+CMD ["npm", "start"]

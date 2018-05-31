@@ -1,0 +1,5 @@
+Build it
+docker build -t dthompson55/subtitles
+
+docker run -it -p 8888:8888 --name subtitles dthompson55/subtitles 
+
