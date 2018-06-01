@@ -10,9 +10,21 @@ var uploadPath = path+"uploads/";
 var request = require('request');
 var fs = require('fs');
 
+var envError = false;
+if ( process.env.SPEECH_TO_TEXT_USERNAME == null || process.env.SPEECH_TO_TEXT_USERNAME === "" ){
+	console.log("Please specify SPEECH_TO_TEXT_USERNAME in .env file. See Watson Speech to Text Credentials documentation.");
+	envError = true;
+}
+
+if ( process.env.SPEECH_TO_TEXT_PASSWORD == null || process.env.SPEECH_TO_TEXT_PASSWORD === "" ){
+	console.log("Please specify SPEECH_TO_TEXT_PASSWORD in .env file. See Watson Speech to Text Credentials documentation.");
+	envError = true;
+}
+
 var video_to_mp3 = require('./Video_to_MP3.js').video_to_mp3;
 var mp3_to_stt_stream = require('./MP3_to_STT_Stream.js').mp3_to_stt_stream;
 var stt_stream_to_cc = require('./STT_to_CC_Format.js').toClosedCaption;
+
 
 var cc_style = {
 		verbose:false,

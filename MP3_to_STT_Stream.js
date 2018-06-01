@@ -7,8 +7,6 @@ require('dotenv').config();
 var muteMode = true;
 var style = {};
 
-process.env.PATH = process.env.PATH+":"+process.env.FFMPEG_PATH;
-
 var SpeechToTextV1 = require('watson-developer-cloud/speech-to-text/v1');
 
 var fs = require('fs');

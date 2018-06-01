@@ -14,6 +14,8 @@ This solution stores your video, the stripped audio, the raw Watson STT results,
 
 ## Run the app locally
 
+It doesn't seem to like Node v10.x, so run with 8.11.2 or the LTS
+
 node app.js
 
 *Prereq*: ffmpeg, which probably limits where you can run this, and is also one of the reasons I don't have it running in a Docker container yet, nor on Bluemix. I run it locally on my desktop. Here's the download site: https://www.ffmpeg.org/download.html
