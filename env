@@ -1,4 +1,2 @@
 SPEECH_TO_TEXT_USERNAME=************************************
 SPEECH_TO_TEXT_PASSWORD=************
-FFMPEG_PATH=/usr/local/bin/
-SPEECH_TO_TEXT_PORT=8888
