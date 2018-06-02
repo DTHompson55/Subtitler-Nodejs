@@ -53,20 +53,20 @@ fs.createReadStream(filename).pipe(recognizeStream);
 recognizeStream.setEncoding('utf8');
 
 // Listen for events.
-recognizeStream.on('message', function(event) { onEvent('MESSAGE:', event); });
-recognizeStream.on('error', function(event) { onEvent('Error:', event); });
-recognizeStream.on('close', function(event) { onEvent('Close:', event); });
-recognizeStream.on('end', function(event) { onEvent('Close:', event); });
+recognizeStream.on('message', function(event) { onEvent('MESSAGE', event); });
+recognizeStream.on('error', function(event) { onEvent('ERROR', event); });
+recognizeStream.on('close', function(event) { onEvent('CLOSE', event); });
+recognizeStream.on('end', function(event) { onEvent('END', event); });
 
 
 // Displays events on the console.
-function onEvent(name, event) {
+function onEvent(msg_type, event) {
   
 	//
 	// implement end, close and error message handlers here too
 	//
 	
-  if ( name === "MESSAGE:"){
+  if ( msg_type === "MESSAGE"){
 	  var data = event.data;
   var d = JSON.parse(data);
   var newMsg = {payload : JSON.parse(data)};
@@ -81,7 +81,7 @@ function onEvent(name, event) {
     	// None of this error recovery is implemented
     	// Let's hope it doesn't happen soon
     	//
-    	callback(d.error,name,d); // send it up to be formatted
+    	callback(d.error,msg_type,d); // send it up to be formatted
     	    	
     	if (!muteMode) {
         payloadutils.reportError(node,newMsg,d.error);
@@ -100,17 +100,17 @@ function onEvent(name, event) {
 //      }
       //resolve();
     } else if (d && d.results ){
-    	callback(null,name,d); // send it up to be formatted
+    	callback(null,msg_type,d); // send it up to be formatted
     }
   }
   }
-  else{
-	  callback(null,name,null); // send it up to be formatted
+  else{ // anything other than MESSAGE type
+	  callback(null,msg_type,null); // send it up to be formatted
   }
   
    
-//  console.log(name, event);
-//  console.log(name, JSON.stringify(event, null, 2));  
+//  console.log(msg_type, event);
+//  console.log(msg_type, JSON.stringify(event, null, 2));  
   };
 
 }

@@ -10,6 +10,7 @@ var uploadPath = path+"uploads/";
 var request = require('request');
 var fs = require('fs');
 
+
 var envError = false;
 if ( process.env.SPEECH_TO_TEXT_USERNAME == null || process.env.SPEECH_TO_TEXT_USERNAME === "" ){
 	console.log("Please specify SPEECH_TO_TEXT_USERNAME in .env file. See Watson Speech to Text Credentials documentation.");
@@ -44,7 +45,7 @@ var stt_params = {
 	  timestamps: true,
 	  objectMode: true,
 	  readableObjectMode: true,
-    speaker_labels: false,
+    speaker_labels: true,
     smart_formatting: true 
 	   };
 
@@ -80,6 +81,12 @@ io.on('connection', function(client){
     });
 });
 
+/**
+ * var count = 0; setInterval(function(){ count+=1; if (io) {
+ * io.emit('status',count); console.log("emitted ",count); } else {
+ * console.log("count ",count); }} , 1000);
+ */
+
 function unlinkAllFilesBut(keep){
 	
 	keep = keep || "XXX";
@@ -104,7 +111,8 @@ var ccData;
 unlinkAllFilesBut();
 
 function saveCCdata(content){
-	  fs.open(uploadPath+appState.filename+'.vtt', 'w', (err, fd) => {
+	console.log("Savecc data ");
+	  fs.open(uploadPath+appState.filename+'.vtt', 'a+', (err, fd) => {
 		  if (err) {
 		    if (err.code === 'EEXIST') {
 		      console.error(appState.filename+'.vtt'+' already exists');
@@ -133,7 +141,7 @@ function saveCCdata(content){
 
 
 function saveRawData(content){
-	  fs.open(uploadPath+appState.filename+'.raw', 'w', (err, fd) => {
+	  fs.open(uploadPath+appState.filename+'.raw', 'a+', (err, fd) => {
 		  if (err) {
 		    if (err.code === 'EEXIST') {
 		      console.error(appState.filename+'.raw'+' already exists');
@@ -165,18 +173,18 @@ var appState = {filename: "e9150e7f694f8ccdd4b9afeca8306556", filesizeMB: 0};
 
 
 app.post('/api/getFilename', function (req, res) {
-//	console.log("getFilename",appState);
+// console.log("getFilename",appState);
 	res.send(appState);
 });
 
 app.post('/api/getCCData', function (req, res) {
-//	console.log("Calling getCCData -->",ccData);
+// console.log("Calling getCCData -->",ccData);
 	res.send(ccData);
 });
 
 app.post('/api/updateCCData', function (req, res) {
 	
-	//console.log("Updating CC data ",req.body.data);
+	// console.log("Updating CC data ",req.body.data);
 	if (req.body.data)		
 	saveCCdata(req.body.data);
 });
@@ -184,7 +192,7 @@ app.post('/api/updateCCData', function (req, res) {
 
 app.post('/api/finishCC', function (req, res) {
 
-//	console.log("Finishing CC data ",req.body.data);
+// console.log("Finishing CC data ",req.body.data);
     if (req.body.data)
 	saveCCdata(req.body.data);
 	res.redirect('../step5.html');
@@ -193,7 +201,7 @@ app.post('/api/finishCC', function (req, res) {
 
 
 app.post('/step1', function (req, res) {
-//	console.log("Index --> Step 1");
+// console.log("Index --> Step 1");
 	res.redirect('step1.html');
 });
 
@@ -204,13 +212,13 @@ app.post('/uploadmp4', upload.single('mp4'), function (req, res, next) {
 	//
 	appState.filename = req.file.filename;
 	
-//	console.log("Uploading file "+req.file.filename);
+// console.log("Uploading file "+req.file.filename);
 	
-	const fs = require("fs"); //Load the filesystem module
+	const fs = require("fs"); // Load the filesystem module
 	const stats = fs.statSync(uploadPath+req.file.filename);
 	const fileSizeInBytes = stats.size
 	appState.filesizeMB = fileSizeInBytes / 1000000.0;
-//	console.log(appState);
+// console.log(appState);
 	
 	unlinkAllFilesBut(req.file.filename);
 	
@@ -219,22 +227,50 @@ app.post('/uploadmp4', upload.single('mp4'), function (req, res, next) {
 
 app.post('/submitCCRequest', function (req, res) {
 
+	console.log("at Submit CC Request1 ",req.body);
+	console.log("at Submit CC Request2 ",stt_params);
+	console.log("at Submit CC Request3 ",cc_style);
+	
+	
+	stt_params.language =  req.body.language;
+	stt_params.speaker_labels =  req.body.speakers === 'true';
+	stt_params.model =  req.body.language+'_'+req.body.model;
+	stt_params.smart_formatting = req.body.smartformatting  === 'true';
+	
+	cc_style.timePerLine =  req.body.timePerLine;
+	cc_style.outputStyle =  req.body.outputStyle;
+	cc_style.hesitations =  req.body.hesitations  === 'true';
+	cc_style.labels =  req.body.labels  === 'true';
+	cc_style.verbose = req.body.verbose  === 'true';
+	
+	console.log("at Submit CC Request4 ",stt_params);
+	console.log("at Submit CC Request5 ",cc_style);
+	
+	
 	video_to_mp3(appState.filename, function(err, mp3_filename){
 		if (!err){
-			console.log("After convert to mp3 ",err, mp3_filename);
 			mp3_to_stt_stream(mp3_filename, stt_params, function(err, msg_type, stt){
 			if (!err){
-				if (msg_type === "MESSAGE:" ){
+				if (msg_type === "MESSAGE" ){
 					saveRawData(stt);
-					
+					io.emit('vstatus',msg_type);
 					saveCCdata(stt_stream_to_cc(stt,cc_style));
+				} else { 
+				if (msg_type === "ERROR") {
+					io.emit('status',msg_type);
 				} else {
-					console.log("CC MESSAGE = ",msg_type);
+					io.emit('astatus',msg_type);
 				}
-			} else console.log("Trouble with to stt_stream ",err)
+			}} else {
+				io.emit('status',err);
+				console.log("Trouble with STT Stream ",err);
+			}
 			});
+
 		} else {
 			console.log("Trouble with convert to mp3 ",err);
+			console.log("Emitted error status ",err, mp3_filename);
+			io.emit('status',err);
 			throw (err);
 		}
 	});
@@ -243,21 +279,21 @@ app.post('/submitCCRequest', function (req, res) {
 });
 
 app.post('/CC', function (req, res) {
-//	console.log("requestCC");
+// console.log("requestCC");
 	res.redirect('step3.html');
 });
 
 app.post('/requestCCback', function (req, res) {
-//	console.log("requestCCback");
+// console.log("requestCCback");
 	res.status(204).end();
 });
 
 app.post('/CCcomplete', function (req, res) {
-//	console.log("CCcomplete");
+// console.log("CCcomplete");
 	res.status(204).end();
 });
 
 app.post('/CCreload', function (req, res) {
-//	console.log("CCreload");
+// console.log("CCreload");
 	res.status(204).end();
 });
