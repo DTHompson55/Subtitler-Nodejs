@@ -78,28 +78,16 @@
 		});
 	}
 
-	var updateCCData = function updateCCData() {
-		ajaxFunction("/api/updateCCData", "text", function(json) {
-			//console.log(json);
-		});
-	}
-
 	ajaxFunction("/api/getFilename", "text", function(json) {
 		//console.log(json);
 		json = JSON.parse(json);
-		$("#video").attr('src', 'uploads/'+json.filename);
-		$("#track").attr('src', 'uploads/'+json.filename + ".vtt");
+		$("#video").attr('src', 'uploads/' + json.filename);
+		$("#track").attr('src', 'uploads/' + json.filename + ".vtt");
 	})
 
 	$(function() {
 		//console.log("This is the viewResults Page");
 		getFilename();
-
-		$('#updateButton').click(function() {
-			CC_Data = {"data": $("#textarea")[0].value};
-			updateCCData();
-			alert("Please Refresh the Page");
-		});
 
 		$('#backButton').click(function() {
 			window.location.href = "step2.html";
@@ -111,43 +99,139 @@
 <body>
 	<h1 id="message">Subtitler - Step 4) Review Transcription</h1>
 
-	<form action="/api/finishCC" method="post" id='uploadForm'
-		action="api/uploadmp4">
 
-		<div class="container">
-			<div class="row">
-				<div class="col-xs-6">
-					<video id="video" width="100%" controls preload="metadata">
-						<source src="" type="video/mp4">
-						<track id="track" label="English" kind="captions" srclang="en"
-							src="uploads/e9150e7f694f8ccdd4b9afeca8306556.vtt" default>
-					</video>
-				</div>
-				<div class="col-xs-6">
-					<textarea id="textarea" name="textarea"><b>My contents are from <u><span
-								style="color: rgb(0, 148, 133);">TEXTAREA</span></u></b></textarea>
+	<div class="container">
+		<div class="row">
+			<div class="col-xs-6">
+				<div>
+					<form action="/api/finishCC" method="post" id="videoNext">
+						<div class="row">
+							<div class="col-xs-12">
+								<video id="video" width="100%" controls preload="metadata">
+									<source src="" type="video/mp4">
+									<track id="track" label="English" kind="captions" srclang="en"
+										src="uploads/e9150e7f694f8ccdd4b9afeca8306556.vtt" default>
+								</video>
+							</div>
+						</div>
 
+						<div class="row">
+							<div class="col-xs-6">
+								<button id="backButton" name="backButton" type="button">Go
+									Back</button>
+							</div>
+							<div class="col-xs-6">
+								<input type="submit" value="Finish" />
+							</div>
+						</div>
+					</form>
 				</div>
 			</div>
-			<div class="row">
-				<div class="col-xs-3">
-					<button id="backButton" name="backButton" type="button">Go
-						Back</button>
+			<div class="col-xs-6">
+				<div>
+					<form action="/api/updateCCData" method="post" id='updateForm'>
+						<div class="row">
+							<div class="col-xs-12">
+								<textarea id="textarea" rows="12" name="textarea">TEXTAREA</textarea>
+								<div class="row">
+									<div class="col-xs-6"></div>
+									<div class="col-xs-6">
+										<input type="submit" value="Update Subtitles"/>
+									</div>
+								</div>
+							</div>
+						</div>
+					</form>
 				</div>
-				<div class="col-xs-3">
-					<input type="submit" />
-				</div>
-				<div class="col-xs-3"></div>
-				<div class="col-xs-3">
-					<button id="updateButton" name="updateButton" type="button">Update
-						Subtitles</button>
-				</div>
-
 			</div>
-
 		</div>
+
+	</div>
 
 	</form>
 
+	<hr>
+	<form action="/api/tweakCCData" method="post" id='tweakCC'>
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-6"></div>
+				<div class="col-xs-6">
+					<div class="row">
+						<div class="col-xs-12">
+							<h4>Re-render Settings (Will lose any subtitle edits)</h4>
+						</div>
+					</div>
+					<div class="row">
+
+						<div class="col-xs-3">line length seconds:</div>
+						<div class="col-xs-3">
+							<select name="timePerLine">
+								<option value="1.5">1.5</option>
+								<option value="2.0" selected>2.0</option>
+								<option value="2.5">2.5</option>
+								<option value="3.0">3.0</option>
+								<option value="3.5">3.5</option>
+								<option value="4.0">4.0</option>
+								<option value="4.5">4.5</option>
+								<option value="5.0">5.0</option>
+							</select>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-2">output:</div>
+						<div class="col-xs-4">
+							<input type='radio' id='outputStyleVTT' value="VTT"
+								name="outputStyle" checked /><label for=vtt>&nbsp;vtt</label>
+						</div>
+						<div class="col-xs-4">
+							<input type='radio' id='outputStyleSRT' value="SRT"
+								name="outputStyle" /><label for=srt>&nbsp;srt</label>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-2">include:</div>
+						<div class="col-xs-8">
+							<input name="hesitations" type="checkbox" id="hesitations"
+								value="true" checked><label for=srt>&nbsp;hesitations</label>
+						</div>
+						<div class="col-xs-4"></div>
+					</div>
+					<div class="row">
+						<div class="col-xs-2"></div>
+						<div class="col-xs-8">
+							<input name="labels" type="checkbox" id="labels" value="true"
+								checked><label for=srt>&nbsp;speaker labels</label>
+						</div>
+						<div class="col-xs-4"></div>
+					</div>
+					<div class="row">
+						<div class="col-xs-2"></div>
+						<div class="col-xs-8">
+							<input name="verbose" type="checkbox" id="verbose" value="false"><label
+								for=verbose>&nbsp;verbose logging</label>
+						</div>
+						<div class="col-xs-4"></div>
+					</div>
+
+					<div class="row">
+						<div class="col-xs-12">
+							<div id="srt_warning"></div>
+						</div>
+						<div class="col-xs-12">
+							<div id="speakers_warning"></div>
+						</div>
+						<div class="col-xs-12">
+							<div id="narrowband_warning"></div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-6">
+							<input type="submit" value="Re-render" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
 </body>
 </html>

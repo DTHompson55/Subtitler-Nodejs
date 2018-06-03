@@ -112,7 +112,7 @@ unlinkAllFilesBut();
 
 function saveCCdata(content){
 	console.log("Savecc data ");
-	  fs.open(uploadPath+appState.filename+'.vtt', 'a+', (err, fd) => {
+	  fs.open(uploadPath+appState.filename+'.vtt', 'w', (err, fd) => {
 		  if (err) {
 		    if (err.code === 'EEXIST') {
 		      console.error(appState.filename+'.vtt'+' already exists');
@@ -139,9 +139,11 @@ function saveCCdata(content){
 		});
 }
 
+var savedRawData;
 
 function saveRawData(content){
-	  fs.open(uploadPath+appState.filename+'.raw', 'a+', (err, fd) => {
+	savedRawData = content; // save for tweaks later on
+	  fs.open(uploadPath+appState.filename+'.raw', 'w', (err, fd) => {
 		  if (err) {
 		    if (err.code === 'EEXIST') {
 		      console.error(appState.filename+'.raw'+' already exists');
@@ -184,10 +186,28 @@ app.post('/api/getCCData', function (req, res) {
 
 app.post('/api/updateCCData', function (req, res) {
 	
-	// console.log("Updating CC data ",req.body.data);
-	if (req.body.data)		
-	saveCCdata(req.body.data);
+	console.log("Updating CC data ",req.body);
+	if (req.body.textarea)		
+	saveCCdata(req.body.textarea);
+	res.redirect('../step4.html');
+
 });
+
+
+app.post('/api/tweakCCData', function (req, res) {
+	cc_style.timePerLine =  req.body.timePerLine;
+	cc_style.outputStyle =  req.body.outputStyle;
+	cc_style.hesitations =  req.body.hesitations  === 'true';
+	cc_style.labels =  req.body.labels  === 'true';
+	cc_style.verbose = req.body.verbose  === 'true';
+	
+	cc_style.suppressHesitations = req.body.hesitations  === 'true';
+	cc_style.suppressSpeakerLabels = req.body.labels  === 'true';
+
+	saveCCdata(stt_stream_to_cc(savedRawData,cc_style));
+	res.redirect('../step4.html');
+});
+
 
 
 app.post('/api/finishCC', function (req, res) {
@@ -226,11 +246,6 @@ app.post('/uploadmp4', upload.single('mp4'), function (req, res, next) {
 });
 
 app.post('/submitCCRequest', function (req, res) {
-
-	console.log("at Submit CC Request1 ",req.body);
-	console.log("at Submit CC Request2 ",stt_params);
-	console.log("at Submit CC Request3 ",cc_style);
-	
 	
 	stt_params.language =  req.body.language;
 	stt_params.speaker_labels =  req.body.speakers === 'true';
@@ -243,10 +258,10 @@ app.post('/submitCCRequest', function (req, res) {
 	cc_style.labels =  req.body.labels  === 'true';
 	cc_style.verbose = req.body.verbose  === 'true';
 	
-	console.log("at Submit CC Request4 ",stt_params);
-	console.log("at Submit CC Request5 ",cc_style);
-	
-	
+	cc_style.suppressHesitations = req.body.hesitations  === 'true';
+	cc_style.suppressSpeakerLabels = req.body.labels  === 'true';
+
+		
 	video_to_mp3(appState.filename, function(err, mp3_filename){
 		if (!err){
 			mp3_to_stt_stream(mp3_filename, stt_params, function(err, msg_type, stt){
